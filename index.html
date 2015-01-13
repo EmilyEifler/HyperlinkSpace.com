@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Enter Here</title>
+		
+		<!--
+
+		This page has oculus support for webVR browsers (thanks Mozilla!)
+		WASD + E/Q navigation support both in and out of VR (thanks, Andrea!)
+		Enter to go into VR mode
+		Space to click links based on camera rotation,
+		and it even listens to the mouse.
+
+		Mozilla's boilerplate: https://github.com/MozVR/vr-web-examples/tree/master/threejs-vr-boilerplate
+
+		Andrea: https://github.com/hawksley
+
+		Icons made by www.freepik.com with Creative Commons license
+		Background image https://www.flickr.com/photos/gadl/6342796159/in/pool-equirectangular/
+
+		-->
+
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000;
+				color: #fff;
+				margin: 0px;
+				padding: 0;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+
+	<body>
+		<audio id='music' src='1_enter/audio/train.mp3' autoplay=true loop=true/>
+	</body>
+
+	<!--
+	three.js 3d library
+	-->
+	<script src="js/three.min.js"></script>
+
+	<!--
+	library for fast quaternion rotation
+	-->
+	<script src="lib/gl-matrix.js"></script>
+
+	<!--
+	VRControls.js acquires positional information from connected VR devices and applies the transformations to a three.js camera object.
+	 -->
+	<script src="js/VRControls.js"></script>
+
+	<!--
+	VREffect.js handles stereo camera setup and rendering.
+	-->
+	<script src="js/VREffect.js"></script>
+	<script src="js/VRCursor.js"></script>
+	<script src="js/randomButton.js"></script>
+
+
+	<script>
+		/*
+		Setup three.js WebGL renderer
+		*/
+		var renderer = new THREE.WebGLRenderer( { antialias: true } );
+		/*
+		Append the canvas element created by the renderer to document body element.
+		*/
+		document.body.appendChild( renderer.domElement );
+		/*
+		Create a three.js scene
+		*/
+		var scene = new THREE.Scene();
+		/*
+		Create a three.js camera
+		*/
+		var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+		/*
+		Apply VR headset positional data to camera.
+		*/
+		var controls = new THREE.VRControls( camera );
+		/*
+		Apply VR stereo rendering to renderer
+		*/
+		var effect = new THREE.VREffect( renderer );
+		effect.setSize( window.innerWidth, window.innerHeight );
+
+		/*
+		Light
+		*/
+		var light = new THREE.AmbientLight( 0xffffff );
+		light.position
+		scene.add( light );
+
+		/*
+		Directions
+		*/
+
+		var oldestImage = new THREE.ImageUtils.loadTexture( "1_enter/images/oldest.png" );
+		var randomImage = new THREE.ImageUtils.loadTexture( "1_enter/images/random.png" );
+		var newestImage = new THREE.ImageUtils.loadTexture( "1_enter/images/newest.png" );
+
+		var panelGeometry = new THREE.PlaneBufferGeometry(2,.8);
+		var panelColor = 0xffffff;
+
+		var oldestMaterial = new THREE.MeshBasicMaterial( {map: oldestImage, transparent: true, alphaTest: 0.5, color: panelColor});
+		var randomMaterial = new THREE.MeshBasicMaterial( {map: randomImage, transparent: true, alphaTest: 0.5, color: panelColor});
+		var newestMaterial = new THREE.MeshBasicMaterial( {map: newestImage, transparent: true, alphaTest: 0.5, color: panelColor});
+		
+		var oldestButton = new THREE.Mesh( panelGeometry, oldestMaterial)
+		var randomButton = new THREE.Mesh( panelGeometry, randomMaterial)
+		var newestButton = new THREE.Mesh( panelGeometry, newestMaterial)
+
+		oldestButton.position.z = -15;
+		oldestButton.position.x = -7;
+		oldestButton.position.y = 0;
+
+		randomButton.position.z = -15;
+		randomButton.position.x = 0;
+		randomButton.position.y = 0;
+
+		newestButton.position.z = -15;
+		newestButton.position.x = 7;
+		newestButton.position.y = 0;
+		
+
+		scene.add(oldestButton);
+		scene.add(randomButton);
+		scene.add(newestButton);
+
+		var selectable =  [oldestButton, newestButton, randomButton];
+
+		/*
+		Menu
+		*/
+		var menuImage = new THREE.ImageUtils.loadTexture( "1_enter/images/menu.png" );
+		var menuGeometry = new THREE.PlaneBufferGeometry(25,7);
+		var menuMaterial = new THREE.MeshBasicMaterial( {map: menuImage, transparent: true, alphaTest: 0.5, color: 0xffffff});
+		var menu = new THREE.Mesh( menuGeometry, menuMaterial);
+		menu.position.z = -20;
+		menu.position.y = 7;
+		scene.add(menu);
+
+		/*
+		Title
+		*/
+		var titleImage = new THREE.ImageUtils.loadTexture( "1_enter/images/title.png" );
+		var titleGeometry = new THREE.PlaneBufferGeometry(50,15);
+		var titleMaterial = new THREE.MeshBasicMaterial( {map: titleImage, transparent: true, alphaTest: 0.5, color: 0x000000});
+		var title = new THREE.Mesh( titleGeometry, titleMaterial);
+		title.position.z = -20;
+		title.position.y = 25;
+		scene.add(title);
+		
+		/*
+		Credits
+		*/
+		var creditsImage = new THREE.ImageUtils.loadTexture( "1_enter/images/credits.png" );
+		var creditsGeometry = new THREE.PlaneBufferGeometry(20,20);
+		var creditsMaterial = new THREE.MeshBasicMaterial( {map: creditsImage, transparent: true, alphaTest: 0.5, color: 0x000000});
+		var credits = new THREE.Mesh( creditsGeometry, creditsMaterial);
+		credits.position.z = 20;
+		credits.position.y = 15;
+		credits.position.x = 17;
+		credits.rotation.y = 180 * (Math.PI/180);
+		scene.add(credits);
+
+		/*
+		Background
+		*/
+		
+		var backgroundGeometry = new THREE.SphereGeometry(100,32,32);
+		var backgroundMaterial = new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture("1_enter/images/background.png"), side: THREE.DoubleSide});
+		var background = new THREE.Mesh( backgroundGeometry, backgroundMaterial);
+		
+		background.rotation.y = 0 * Math.PI/180;
+		scene.add(background);
+
+
+
+		/*
+		create cursor
+		*/
+		var cursor = new VRCursor();
+		cursor.ready.then(function() {
+	    	scene.add(cursor.layout);
+	    	cursor.init(renderer.domElement, camera, scene, selectable);
+	    	cursor.enable();
+	    });
+
+		var prevSelected = null;
+
+		function animate() {
+			if (cursor.enabled) {
+        		cursor.updatePosition();
+
+        		if ( cursor.objectMouseOver !== null && prevSelected !== cursor.objectMouseOver) {
+        			cursor.objectMouseOver.material.color.set(0xFF944D);
+        		} 
+
+        		if (prevSelected !== null && prevSelected !== cursor.objectMouseOver) {
+        			prevSelected.material.color.set(panelColor);
+        		}
+
+        		prevSelected = cursor.objectMouseOver;
+        	}
+
+		/*
+		Update VR headset position and apply to camera.
+		*/
+		controls.update();
+		/*
+		Render the scene through the VREffect.
+		*/
+		effect.render( scene, camera );
+		requestAnimationFrame( animate );
+	}
+		/*
+		Kick off animation loop
+		*/
+		animate();
+
+		//links
+
+		function link(){
+			if(cursor.objectMouseOver == oldestButton){
+				window.location="http://hyperlinkspace.com/2_horse/";
+			}else if (cursor.objectMouseOver == randomButton){
+				window.location=getRandomPage();
+			}else if (cursor.objectMouseOver == newestButton){
+				window.location=newestPage;
+			}
+		 }
+
+		/*
+		Listen for double click event to enter full-screen VR mode
+		*/
+		document.body.addEventListener( 'dblclick', function() {
+			effect.setFullScreen( true );
+		});
+
+		/*
+		Listen for keyboard events 
+		*/
+		function onkey(event) {
+	    event.preventDefault();
+
+	    if (event.keyCode == 90) { // z
+	    	controls.zeroSensor(); //zero rotation
+	    } else if (event.keyCode == 70 || event.keyCode == 13) { //f or enter
+	    	effect.setFullScreen(true) //fullscreen
+	    } else if (event.keyCode == 32  ) {//space
+	  		link();
+	  	}
+	  };
+
+	  window.addEventListener("keydown", onkey, true);
+
+	  	  //hold down keys to do rotations and stuff
+	  	var speed = .4;
+		function key(event, sign) {
+		  var control = controls.manualControls[String.fromCharCode(event.keyCode).toLowerCase()];
+		  if (!control)
+		    return;
+		  if (sign === speed && control.active || sign === -speed && !control.active)
+		    return;
+		  control.active = (sign === speed);
+		  controls.manualRotateRate[control.index] += sign * control.sign;
+		}
+		document.addEventListener('keydown', function(event) { key(event, speed); }, false);
+		document.addEventListener('keyup', function(event) { key(event, -speed); }, false);
+
+		/*
+		Handle window resizes
+		*/
+		function onWindowResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			effect.setSize( window.innerWidth, window.innerHeight );
+		}
+		window.addEventListener( 'resize', onWindowResize, false );
+	</script>
+</html>

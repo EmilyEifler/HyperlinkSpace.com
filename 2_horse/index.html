@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>This is my horse. My horse is amazing.</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000;
+				color: #fff;
+				margin: 0px;
+				padding: 0;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+
+	<body>
+		<audio id='music' src='35536_reinsamba_squeaking-door.ogg' autoplay=true loop=true/>
+	</body>
+
+	<!--
+	three.js 3d library
+	-->
+	<script src="../js/three.min.js"></script>
+
+	<!--
+	VRControls.js acquires positional information from connected VR devices and applies the transformations to a three.js camera object.
+	 -->
+	<script src="../js/VRControlsPlus.js"></script>
+
+	<!--
+	VREffect.js handles stereo camera setup and rendering.
+	-->
+	<script src="../js/VREffect.js"></script>
+	<script src="../lib/gl-matrix.js"></script>
+	<script src="../js/VRCursor.js"></script>
+
+	<script>
+		/*
+		Setup three.js WebGL renderer
+		*/
+		var renderer = new THREE.WebGLRenderer( { antialias: true } );
+
+		/*
+		Append the canvas element created by the renderer to document body element.
+		*/
+		document.body.appendChild( renderer.domElement );
+
+		/*
+		Create a three.js scene
+		*/
+		var scene = new THREE.Scene();
+
+		/*
+		Create a three.js camera
+		*/
+		var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+
+		/*
+		Apply VR headset positional data to camera.
+		*/
+		var controls = new THREE.VRControls( camera );
+
+		/*
+		Apply VR stereo rendering to renderer
+		*/
+		var effect = new THREE.VREffect( renderer );
+		effect.setSize( window.innerWidth, window.innerHeight );
+
+		/*
+		Create 3d objects
+		*/
+
+
+		var mouseX = 1;
+		var mouseY = 1;
+
+		var light = new THREE.DirectionalLight( 0xFFFFFF );
+		light.position.set( 0, 1, 1 ).normalize();
+		scene.add(light);
+	
+		var cubeGemo = new THREE.CubeGeometry( 10, 10, 10);
+		var material = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('crate.jpg') } );
+		 
+		var cubeArray = new Array();
+		var cubeArray2 = new Array();
+
+		var cube = new THREE.Mesh( cubeGemo, material );
+
+		var loader = new THREE.JSONLoader( true );
+		var horserun1;
+		var horserun2;
+		var horserun3;
+		var horseMesh;
+		var horseMesh2;
+		var horseMesh3;
+
+		loader.load( "horse.js", function( geometry ) {
+			horseMesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x66FFCC, morphTargets: true } ) );
+			horseMesh.scale.set( .2, .2, .2 );
+			horseMesh.position.set(-50,-10,0);
+			scene.add( horseMesh );
+
+			horseMesh2 = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0xFFAD33, morphTargets: true } ) );
+			horseMesh2.scale.set( .2, .2, .2 );
+			horseMesh2.position.set(50,-10,0);
+			scene.add( horseMesh2 );
+
+
+			horseMesh3 = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x666699, morphTargets: true } ) );
+			horseMesh3.scale.set( 1, 1, 1 );
+			horseMesh3.position.set(0,50,0);
+			scene.add( horseMesh3 );
+
+			horserun1 = new THREE.MorphAnimation( horseMesh );
+			horserun1.play();
+
+			horserun2 = new THREE.MorphAnimation( horseMesh2 );
+			horserun2.play();
+
+			horserun3 = new THREE.MorphAnimation( horseMesh3 );
+			horserun3.play();
+		} );
+
+		
+
+		
+		var m = 0;
+		var width = 20;
+
+		for (var signx=-1; signx<=1; signx+=2 ){
+			for (var signy=-1; signy<=1; signy+=2 ){
+				for (var j=0; j<width; j++) {
+					for (var i=0; i<width; i++) {
+						cubeArray[m] = new THREE.Mesh( cubeGemo, material );
+						cubeArray[m].position.z = -40 + i*14;
+						cubeArray[m].position.x = i*11*signx;
+						cubeArray[m].position.y = j*11*signy + i*11*signy;
+						scene.add( cubeArray[m] );
+						m += 1;
+					}
+				}
+			}
+		}
+
+		for (var signx=-1; signx<=1; signx+=2 ){
+			for (var signy=-1; signy<=1; signy+=2 ){
+				for (var j=0; j<width; j++) {
+					for (var i=0; i<width; i++) {
+						cubeArray2[m] = new THREE.Mesh( cubeGemo, material );
+						cubeArray2[m].position.z = 40 + i*10;
+						cubeArray2[m].position.x = i*11*signx;
+						cubeArray2[m].position.y = j*11*signy + i*11*signy;
+						scene.add( cubeArray2[m] );
+						m += 1;
+					}
+				}
+			}
+		}
+
+		/*
+		Exit Sign
+		*/
+		var exitImage = THREE.ImageUtils.loadTexture( "exit.png" );
+		var exitGeometry = new THREE.PlaneBufferGeometry( 3, 3);
+		var exitMaterial = new THREE.MeshBasicMaterial( { map: exitImage, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 } );
+		var exitSign = new THREE.Mesh( exitGeometry, exitMaterial );
+		exitSign.position.z = 10;
+		exitSign.position.x = 0;
+		exitSign.position.y = 5;
+		exitSign.rotation.y = 180 * Math.PI/180;
+
+		scene.add(exitSign);
+
+		var selectable = [exitSign];
+		
+		/*
+		create cursor
+		*/
+		var cursor = new VRCursor();
+		cursor.ready.then(function() {
+	    	scene.add(cursor.layout);
+	    	cursor.init(renderer.domElement, camera, scene, selectable);
+	    	cursor.enable();
+	    });
+
+		var prevSelected = null;
+
+
+		/*
+		Request animation frame loop function
+		*/
+		var isRotating = true;
+
+		var prevTime = 0;
+		var prevTime2 = 0;
+		var prevTime3 = 0;
+
+
+		function animate() {
+			if (cursor.enabled) {
+        		cursor.updatePosition();
+
+        		if ( cursor.objectMouseOver !== null && prevSelected !== cursor.objectMouseOver) {
+        			cursor.objectMouseOver.material.color.set(0x009933);
+        		} 
+
+        		if (prevSelected !== null && prevSelected !== cursor.objectMouseOver) {
+        			prevSelected.material.color.set(0xffffff);
+        		}
+
+        		prevSelected = cursor.objectMouseOver;
+        	}
+			if ( horserun1 ) {
+
+					var time = Date.now();
+					horserun1.update( (time - prevTime)*.6 );
+					prevTime = time;
+
+				}
+
+			if ( horserun2 ) {
+
+					var time2 = Date.now();
+					horserun2.update( (time2 - prevTime2)*.3 );
+					prevTime2 = time2;
+
+				}
+
+			if ( horserun3 ) {
+
+					var time3 = Date.now();
+					horserun3.update( (time3 - prevTime3)*.5 );
+					prevTime3 = time3;
+
+				}
+			
+	
+			var m = 0;
+
+			if (isRotating == true) {
+
+				for (var signx=-1; signx<=1; signx+=2 ){
+					for (var signy=-1; signy<=1; signy+=2 ){
+						for (var j=0; j<width; j++) {
+							for (var i=0; i<width; i++) {
+								cubeArray[m].rotation.y += (.001 + i*.002 + j*.003)*signx;
+								m += 1;
+							}
+					
+						}
+					}
+
+				}
+
+				for (var signx=-1; signx<=1; signx+=2 ){
+					for (var signy=-1; signy<=1; signy+=2 ){
+						for (var j=0; j<width; j++) {
+							for (var i=0; i<width; i++) {
+								cubeArray2[m].rotation.y += (.001 + i*.002 + j*.003)*signx;
+								m += 1;
+							}
+					
+						}
+					}
+				}
+			}
+
+			/*
+			Update VR headset position and apply to camera.
+			*/
+			controls.update();
+
+			/*
+			Render the scene through the VREffect.
+			*/
+			effect.render( scene, camera );
+
+			requestAnimationFrame( animate );
+		}
+
+		/*
+		Kick off animation loop
+		*/
+		animate();
+		
+		/*
+		Links
+		*/
+		
+		function link(){
+			if(cursor.objectMouseOver == exitSign){
+				window.location="http://hyperlinkspace.com/3_apartment/";
+				}
+			}
+		
+	
+		
+		/*
+		Listen for double click event to enter full-screen VR mode
+		*/
+		document.body.addEventListener( 'dblclick', function() {
+			effect.setFullScreen( true );
+		});
+
+		/*document.body.addEventListener( 'click', function(event) {
+			isRotating = !isRotating;
+
+		});*/
+
+		/*
+		Listen for keyboard event and zero positional sensor on appropriate keypress.
+		*/
+		function onkey(event) {
+	    event.preventDefault();
+             if (event.keyCode == 90) { // z
+	    	controls.zeroSensor(); //zero rotation
+	    } else if (event.keyCode == 70 || event.keyCode == 13) { //f or enter
+	    	effect.setFullScreen(true) //fullscreen
+	    } else if (event.keyCode == 32  ) {//space
+	  		link();
+	  	}
+	  };
+
+	  window.addEventListener("keydown", onkey, true);
+
+
+		/*
+		Handle window resizes
+		*/
+		function onWindowResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+
+			effect.setSize( window.innerWidth, window.innerHeight );
+		}
+
+		window.addEventListener( 'resize', onWindowResize, false );
+
+	</script>
+</html>

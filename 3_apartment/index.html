@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Apartment</title>
+		
+		<!--
+
+		It has oculus support for webVR browsers (thanks Mozilla!)
+		WASD + E/Q navigation support both in and out of VR (thanks, Andrea!)
+		Enter to go into VR mode,
+		Space to click links based on camera rotation,
+		and it even listens to the mouse.
+
+		Mozilla's boilerplate: https://github.com/MozVR/vr-web-examples/tree/master/threejs-vr-boilerplate
+
+		Andrea: https://github.com/hawksley
+
+		-->
+
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000;
+				color: #fff;
+				margin: 0px;
+				padding: 0;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+
+	<body>
+		<audio id='music' src='audio/Lezet_-_02_-_Nervousness.mp3' autoplay=true loop=true/>
+	</body>
+
+	<!--
+	three.js 3d library
+	-->
+	<script src="../js/three.min.js"></script>
+
+	<!--
+	library for fast quaternion rotation
+	-->
+	<script src="../lib/gl-matrix.js"></script>
+
+	<!--
+	VRControls.js acquires positional information from connected VR devices and applies the transformations to a three.js camera object.
+	 -->
+	<script src="../js/VRControls.js"></script>
+
+	<!--
+	VREffect.js handles stereo camera setup and rendering.
+	-->
+	<script src="../js/VREffect.js"></script>
+	<script src="../js/VRCursor.js"></script>
+
+	<!--
+	Brings font to the party
+	-->
+
+	<script src="../lib/helvetiker.js"></script>
+
+
+
+	<script>
+		/*
+		Setup three.js WebGL renderer
+		*/
+		var renderer = new THREE.WebGLRenderer( { antialias: true } );
+
+		renderer.autoClear = false;
+
+		//renderer.setClearColor( 0xffffff, 1 );
+
+		/*
+		Append the canvas element created by the renderer to document body element.
+		*/
+		document.body.appendChild( renderer.domElement );
+		/*
+		Create a three.js scene
+		*/
+		var scene = new THREE.Scene();
+		
+
+		/*
+		Create a three.js camera
+		*/
+		var camera = new THREE.PerspectiveCamera( 120, window.innerWidth / window.innerHeight, 1, 10000 );
+		/*
+		Apply VR headset positional data to camera.
+		*/
+		var controls = new THREE.VRControls( camera );
+		/*
+		Apply VR stereo rendering to renderer
+		*/
+		var effect = new THREE.VREffect( renderer );
+		effect.setSize( window.innerWidth, window.innerHeight );
+		
+		var light = new THREE.AmbientLight( 0xffffff );
+		light.position
+			scene.add( light );
+
+		/*
+		define interaction variables
+		*/
+		var mouseY = 1;
+		var mouseX = 1;
+		var clicky = 0;
+		
+		/*
+		Background
+		*/
+
+		var sunImage = new THREE.ImageUtils.loadTexture( "images/park.png" );
+		var sunGeometry = new THREE.SphereGeometry(100, 32, 32);
+		var sunMaterial = new THREE.MeshPhongMaterial( {map: sunImage, side: THREE.DoubleSide, alphaTest: 0.5});
+		
+		var sunny = new THREE.Mesh( sunGeometry, sunMaterial)
+		sunny.position.x = 10;
+
+		scene.add(sunny);
+		
+
+
+		/*
+		Floor
+		*/
+		
+		var wood = THREE.ImageUtils.loadTexture( "images/floorinvert.png" );
+		//wood.wrapT = wood.wrapS = THREE.RepeatWrapping;
+		//wood.repeat.set(2, 2);
+		var floorGeometry = new THREE.PlaneBufferGeometry( 20, 20);
+		var floorMaterial = new THREE.MeshBasicMaterial( { map: wood, side: THREE.DoubleSide, alphaTest: 0.5 } );
+		
+
+		var floorGrid = [];
+		var floorLength = 5;
+		var floorWidth = 5;
+		var m = 0;
+
+        for (var j=0; j<floorWidth; j++) {
+        	for (var i=0; i<floorLength; i++){
+        	floorGrid[m] = new THREE.Mesh( floorGeometry, floorMaterial );
+        	floorGrid[m].position.y = -20;
+        	floorGrid[m].position.x = -60 + j*20;
+        	floorGrid[m].position.z = -60 + i*20;
+        	floorGrid[m].rotation.x = Math.PI / 2;
+        	scene.add(floorGrid[m]);
+        	m += 1;
+        }
+       };
+		
+
+		/*
+		Couch
+		*/
+
+		var couchTexture = THREE.ImageUtils.loadTexture( "images/couch2nofloor.png" );
+		var couchGeometry = new THREE.PlaneBufferGeometry( 20, 20);
+		var couchMaterial = new THREE.MeshBasicMaterial( { map: couchTexture, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 } );
+		var couch = new THREE.Mesh( couchGeometry, couchMaterial );
+		couch.position.x = 10;
+		couch.position.y = -12;
+		couch.position.z = 1;
+		couch.rotation.y = 50 * Math.PI / 180;
+		couch.rotation.x = 17 * Math.PI / 180;
+		//couch.rotation.z = -20 * Math.PI / 180;
+
+
+		scene.add( couch );		
+
+		 /*
+		Right Chair
+		*/
+		
+		
+		var rightChairTexture = THREE.ImageUtils.loadTexture( "images/chairright.png" );
+		var rightChairGeometry = new THREE.PlaneBufferGeometry( 13, 13);
+		var rightChairMaterial = new THREE.MeshBasicMaterial( { map: rightChairTexture, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 } );
+		var rightChair1 = new THREE.Mesh( rightChairGeometry, rightChairMaterial );
+		rightChair1.position.x = -18;
+		rightChair1.position.y = -12;
+		rightChair1.position.z = -10;
+		rightChair1.rotation.y = Math.PI/ 2;
+		//rightChair1.rotation.x = Math.PI/ 2;
+		scene.add( rightChair1 );
+
+        /*
+		Laptop table
+		*/			
+
+		var tableTexture = THREE.ImageUtils.loadTexture( "images/laptopnofloor.png" );
+		var tableGeometry = new THREE.PlaneBufferGeometry( 15, 20);
+		var tableMaterial = new THREE.MeshBasicMaterial( { map: tableTexture, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 } );
+		var table = new THREE.Mesh( tableGeometry, tableMaterial );
+		table.position.x = -19;
+		table.position.y = -10;
+		table.position.z = 3;
+		table.rotation.y = 80;
+		scene.add( table );
+
+		/*
+		Arrow table
+		*/
+
+		var arrowtableTexture = THREE.ImageUtils.loadTexture( "images/table.png" );
+		var arrowtableGeometry = new THREE.PlaneBufferGeometry( 15, 20);
+		var arrowtableMaterial = new THREE.MeshBasicMaterial( { map: arrowtableTexture, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 } );
+		var arrowtable = new THREE.Mesh( arrowtableGeometry, arrowtableMaterial );
+		arrowtable.position.x = -10;
+		arrowtable.position.y = -10;
+		arrowtable.position.z = -16;
+		arrowtable.rotation.y = -10 * Math.PI / 180;
+		arrowtable.rotation.x = -20 * Math.PI / 180;
+		scene.add( arrowtable );			
+   
+
+   		/*
+		Arrow table
+		*/
+
+		var tubTexture = THREE.ImageUtils.loadTexture( "images/tub.png" );
+		var tubGeometry = new THREE.PlaneBufferGeometry( 15, 20);
+		var tubMaterial = new THREE.MeshBasicMaterial( { map: tubTexture, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 } );
+		var tub = new THREE.Mesh( tubGeometry, tubMaterial );
+		tub.position.x = 7;
+		tub.position.y = -10;
+		tub.position.z = -18;
+		tub.rotation.z = -15 * Math.PI / 180;
+		//arrowtable.rotation.x = -20 * Math.PI / 180;
+		scene.add( tub );
+
+		/*
+		Walls
+		*/
+
+		var windowWallImage = THREE.ImageUtils.loadTexture( "images/windowwall.png" );
+		var windowWallGeometry = new THREE.PlaneBufferGeometry( 20, 20);
+		var windowWallMaterial = new THREE.MeshBasicMaterial( { map: windowWallImage, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 } );
+		
+		var windowWall = new THREE.Mesh( windowWallGeometry, windowWallMaterial );
+		windowWall.position.y = 0;
+        windowWall.position.x = 0;
+        windowWall.position.z = -20;
+		scene.add( windowWall );
+
+		var wallImage = THREE.ImageUtils.loadTexture( "images/wall.png" );
+		var wallGeometry = new THREE.PlaneBufferGeometry( 20, 20);
+		var wallMaterial = new THREE.MeshBasicMaterial( { map: wallImage, side: THREE.DoubleSide, alphaTest: 0.5 } );
+		
+		var wall = new THREE.Mesh( wallGeometry, wallMaterial );
+		wall.position.y = 0;
+        wall.position.x = -20;
+        wall.position.z = -20;
+		scene.add( wall );
+
+		var windowWall2 = new THREE.Mesh( windowWallGeometry, windowWallMaterial );
+		windowWall2.position.y = 0;
+        windowWall2.position.x = -20;
+        windowWall2.position.z = 0;
+        windowWall2.rotation.y = Math.PI / 2;
+		scene.add( windowWall2 );
+
+
+		var wall2 = new THREE.Mesh( wallGeometry, wallMaterial );
+		wall2.position.y = 0;
+        wall2.position.x = -20;
+        wall2.position.z = -20;
+        wall2.rotation.y = Math.PI / 2;
+		scene.add( wall2 );
+
+		var wall3 = new THREE.Mesh( wallGeometry, wallMaterial );
+		wall3.position.y = 0;
+        wall3.position.x = -20;
+        wall3.position.z = 10;
+        //wall3.rotation.y = Math.PI / 2;
+		scene.add( wall3 );
+
+
+		var wall4 = new THREE.Mesh( wallGeometry, wallMaterial );
+		wall4.position.y = 0;
+        wall4.position.x = 0;
+        wall4.position.z = 10;
+        //wall4.rotation.y = Math.PI / 2;
+		scene.add( wall4 );
+
+		/*
+		Exit Sign
+		*/
+		var exitImage = THREE.ImageUtils.loadTexture( "images/exit.png" );
+		var exitGeometry = new THREE.PlaneBufferGeometry( 3, 3);
+		var exitMaterial = new THREE.MeshBasicMaterial( { map: exitImage, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 } );
+		var exitSign = new THREE.Mesh( exitGeometry, exitMaterial );
+		exitSign.position.z = 9;
+		exitSign.position.x = 0;
+		exitSign.position.y = 5;
+		exitSign.rotation.y = 180 * Math.PI/180;
+
+		scene.add(exitSign);
+
+		var selectable = [exitSign];
+
+		/*
+		Stools
+		*/
+
+		var teeterImage = [];
+		teeterImage.length = 14;
+
+		for ( var i=0; i<teeterImage.length; i++){
+			teeterImage[i] = new THREE.ImageUtils.loadTexture( "images/teeter/" + [i + 1] + ".png" );
+		}
+
+		var stoolGeometry = new THREE.PlaneBufferGeometry(40,40);
+		var stoolMaterial = new THREE.MeshBasicMaterial( { map: teeterImage, transparent: true, color: 0xA8C54F, side: THREE.DoubleSide, alphaTest: 0.5 }); 
+		var stool = new THREE.Mesh( stoolGeometry, stoolMaterial ); 
+		
+		
+		stool.position.x = 25;
+		stool.position.y = 5;
+		stool.position.z = -4;
+		stool.rotation.y = -90 * Math.PI / 180;
+		scene.add( stool );
+
+		var reversing = false;
+		var gifCounter = 0;
+
+		/*
+		Animate stools
+		*/
+
+		clock();      
+    	var x = 0;
+		var interval = setInterval(function() { 
+			 clock();
+		     x++;
+		 }, 90);
+
+		function clock(){
+			if (teeterImage[gifCounter] != null) stool.material.map = teeterImage[gifCounter];
+			
+			if (!reversing && gifCounter + 1 > teeterImage.length ){
+				reversing = true;
+				gifCounter --;
+			} else if(reversing && gifCounter - 1 < 0 ){
+				reversing = false;
+				gifCounter ++;
+			} else if(reversing && gifCounter - 1 >= 0 ) {
+				gifCounter --;
+			}else{
+				gifCounter ++;
+			}
+		}
+		
+		/*
+		Create VR Curser
+		*/
+		var cursor = new VRCursor();
+		cursor.ready.then(function() {
+	    	scene.add(cursor.layout);
+	    	cursor.init(renderer.domElement, camera, scene, selectable);
+	    	cursor.enable();
+	    });
+
+		/*
+		Request animation frame loop function
+		*/
+		var prevSelected = null;
+		function animate() {
+			if (cursor.enabled) {
+        		cursor.updatePosition();
+
+        		if ( cursor.objectMouseOver !== null && prevSelected !== cursor.objectMouseOver) {
+        			cursor.objectMouseOver.material.color.set(0x003300
+);
+        		} 
+
+        		if (prevSelected !== null && prevSelected !== cursor.objectMouseOver) {
+        			prevSelected.material.color.set(0x999999);
+        		}
+
+        		prevSelected = cursor.objectMouseOver;
+        	}
+			/*
+			Update VR headset position and apply to camera.
+			*/
+			controls.update();
+			/*
+			Render the scene through the VREffect.
+			*/
+			effect.render( scene, camera );
+			requestAnimationFrame( animate );
+		}
+		/*
+		Animation loop
+		*/
+		animate();
+
+		/*
+		Links
+		*/
+
+		function link(){
+			if(cursor.objectMouseOver == exitSign){
+				window.location="http://hyperlinkspace.com/4_orbit/";
+		 }
+		}
+		
+		
+		/*
+		Listen for double click event to enter full-screen VR mode
+		*/
+		document.body.addEventListener( 'dblclick', function() {
+			effect.setFullScreen( true );
+		});
+		/*
+		Listen for keyboard events 
+		// */
+		// function onkey(event) {
+	 //    event.preventDefault();
+
+	 //    if (event.keyCode == 90) { // z
+	 //    	controls.zeroSensor(); //zero rotation
+	 //    } else if (event.keyCode == 70 || event.keyCode == 13) { //f or enter
+	 //    	effect.setFullScreen(true) //fullscreen
+	 //    } else if (event.keyCode == 32) {//space
+	 //  		link();
+	 //  		}
+	 //  	}
+	 //  };
+
+	  	  //hold down keys to do rotations and stuff
+		function key(event, sign) {
+		  if (event.keyCode == 90) { // z
+	    	controls.zeroSensor(); //zero rotation
+	    } else if (event.keyCode == 70 || event.keyCode == 13) { //f or enter
+	    	effect.setFullScreen(true) //fullscreen
+	    } else if (event.keyCode == 32) {//space
+	  		link();
+	  		}
+		  var control = controls.manualControls[String.fromCharCode(event.keyCode).toLowerCase()];
+		  if (!control) {
+		    return;
+		}
+		  if (sign === 1 && control.active || sign === -1 && !control.active){
+		    return;
+		}
+		  control.active = (sign === 1);
+		  controls.manualRotateRate[control.index] += sign * control.sign;
+		}
+		document.addEventListener('keydown', function(event) { key(event, 1); }, false);
+		document.addEventListener('keyup', function(event) { key(event, -1); }, false);
+
+		/*
+		Handle window resizes
+		*/
+		function onWindowResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			effect.setSize( window.innerWidth, window.innerHeight );
+		}
+		window.addEventListener( 'resize', onWindowResize, false );
+	</script>
+</html>

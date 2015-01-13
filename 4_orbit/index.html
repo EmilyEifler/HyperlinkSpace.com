@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Orbit</title>
+		
+		<!--
+
+		Mozilla's boilerplate: https://github.com/MozVR/vr-web-examples/tree/master/threejs-vr-boilerplate
+
+		Andrea: https://github.com/hawksley
+
+		-->
+
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000;
+				color: #fff;
+				margin: 0px;
+				padding: 0;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+
+	<body>
+
+		<audio id='music' src='whispering.ogg' autoplay=true loop=true/>
+		<audio id='music2' src='underway.ogg' autoplay=true loop=true/>
+
+	</body>
+
+	<!--
+	three.js 3d library
+	-->
+	<script src="../js/three.min.js"></script>
+
+	<!--
+	library for fast quaternion rotation
+	-->
+	<script src="../lib/gl-matrix.js"></script>
+
+	<!--
+	VRControls.js acquires positional information from connected VR devices and applies the transformations to a three.js camera object.
+	 -->
+	<script src="../js/VRControls.js"></script>
+
+	<!--
+	VREffect.js handles stereo camera setup and rendering.
+	-->
+	<script src="../js/VREffect.js"></script>
+	<script src="../js/VRCursor.js"></script>
+	<script src="../js/randomButton.js"></script>
+
+
+	<script>
+		/*
+		Setup three.js WebGL renderer
+		*/
+		var renderer = new THREE.WebGLRenderer( { antialias: true } );
+		/*
+		Append the canvas element created by the renderer to document body element.
+		*/
+		document.body.appendChild( renderer.domElement );
+		/*
+		Create a three.js scene
+		*/
+		var scene = new THREE.Scene();
+		/*
+		Create a three.js camera
+		*/
+		var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+		/*
+		Apply VR headset positional data to camera.
+		*/
+		var controls = new THREE.VRControls( camera );
+		/*
+		Apply VR stereo rendering to renderer
+		*/
+		var effect = new THREE.VREffect( renderer );
+		effect.setSize( window.innerWidth, window.innerHeight );
+
+		/*
+		define interaction variables
+		*/
+		var mouseY = 1;
+		var mouseX = 1;
+		var clicky = 0;
+
+		/*
+		Light
+		*/
+		var light = new THREE.AmbientLight( 0xffffff );
+		light.position
+		scene.add( light );
+		
+		/*
+		Parent
+		*/
+		var boxMaterial = new THREE.MeshBasicMaterial();
+		var boxGeometry = new THREE.BoxGeometry(.1,.1,.1);
+		var box = new THREE.Mesh( boxGeometry, boxMaterial);
+
+		/*
+		Children
+		*/
+		var orbitImages = [];
+			orbitImages.length = 12
+		var orbitGeometry = new THREE.PlaneBufferGeometry( 10, 10 )
+		var mesh = [];
+		var distance = 15;
+		var pivot = [];
+	
+		for ( var i = 0; i < orbitImages.length; i ++ ){
+				orbitImages[i] = THREE.ImageUtils.loadTexture( "images/" + [i] + ".png" );
+			var orbitMaterial = new THREE.MeshBasicMaterial({ map: orbitImages[i], transparent: true, color: 0x999999, side: THREE.DoubleSide, alphaTest: 0.5 });
+			mesh[i] = new THREE.Mesh( orbitGeometry, orbitMaterial );
+			mesh[i].position.z = distance;
+			if (i%2) {
+				mesh[i].position.y = 5;
+			} else if (i%3) { 
+				mesh[i].position.y = -5;
+			} else if (i%5) {
+				mesh[i].position.x = 10;
+			} else { 
+				mesh[i].position.x = -10;
+			};
+			mesh[i].lookAt( camera.position );
+			pivot[i] = new THREE.Object3D();
+			box.add( pivot[i] );
+			pivot[i].add( mesh[i] );
+		}
+
+                var selectable = [mesh[0], mesh[2], mesh[4], mesh[8], mesh[9]];
+
+		/*
+		create cursor
+		*/
+		var cursor = new VRCursor();
+		cursor.ready.then(function() {
+	    	scene.add(cursor.layout);
+	    	cursor.init(renderer.domElement, camera, scene, selectable);
+	    	cursor.enable();
+	    });
+
+		/*
+		Add Parent to your three.js scene
+		*/
+		scene.add( box );
+
+		/*
+		Request animation frame loop function
+		*/
+		var prevSelected = null;
+
+		var pi = 3.141592653979323846265338;
+		var currentAngle = pi/2;
+		function animate() {
+			currentAngle += 0.001;
+
+			for (i=0; i<orbitImages.length; i++){
+				if (i === 0){
+					pivot[i].rotation.y += .001;
+				} else if (i%3) {
+					pivot[i].rotation.y -= .001 * i;
+				} else {
+					pivot[i].rotation.y += .001 * i;
+				}
+					
+			}
+
+      		if (cursor.enabled) {
+        		cursor.updatePosition();
+
+        		if ( cursor.objectMouseOver !== null && prevSelected !== cursor.objectMouseOver) {
+        			cursor.objectMouseOver.material.color.set(0xffffff);
+        		} 
+
+        		if (prevSelected !== null && prevSelected !== cursor.objectMouseOver) {
+        			prevSelected.material.color.set(0x999999);
+        		}
+
+        		prevSelected = cursor.objectMouseOver;
+        	}
+			/*
+			Update VR headset position and apply to camera.
+			*/
+			controls.update();
+			/*
+			Render the scene through the VREffect.
+			*/
+			effect.render( scene, camera );
+			requestAnimationFrame( animate );
+		}
+		
+		/*
+		Kick off animation loop
+		*/
+		animate();
+
+		/*
+		Spacebar links
+		*/
+		
+		var testerLink = newestPage;
+		
+		function link(){
+			if(cursor.objectMouseOver == mesh[0]){
+				window.location=testerLink;
+			}else if (cursor.objectMouseOver == mesh[2]){
+				window.location=testerLink;
+			}else if (cursor.objectMouseOver == mesh[4]){
+				window.location=testerLink;
+			}else if (cursor.objectMouseOver == mesh[8]){
+				window.location=testerLink;
+			}else if (cursor.objectMouseOver == mesh[9]){
+				window.location=testerLink;
+		 }
+		 }
+
+
+		/*
+		Listen for double click event to enter full-screen VR mode
+		*/
+		document.body.addEventListener( 'dblclick', function() {
+			effect.setFullScreen( true );
+		});
+
+		/*
+		Listen for keyboard events 
+		*/
+		function onkey(event) {
+	    event.preventDefault();
+
+	    if (event.keyCode == 90) { // z
+	    	controls.zeroSensor(); //zero rotation
+	    } else if (event.keyCode == 70 || event.keyCode == 13) { //f or enter
+	    	effect.setFullScreen(true) //fullscreen
+	    } else if (event.keyCode == 32) {//space
+	  		link();
+	  	}
+
+
+	  };
+	  window.addEventListener("keydown", onkey, true);
+
+	  	  //hold down keys to do rotations and stuff
+	  	var speed = .4;
+		function key(event, sign) {
+		  var control = controls.manualControls[String.fromCharCode(event.keyCode).toLowerCase()];
+		  if (!control)
+		    return;
+		  if (sign === speed && control.active || sign === -speed && !control.active)
+		    return;
+		  control.active = (sign === speed);
+		  controls.manualRotateRate[control.index] += sign * control.sign;
+		}
+		document.addEventListener('keydown', function(event) { key(event, speed); }, false);
+		document.addEventListener('keyup', function(event) { key(event, -speed); }, false);
+
+		/*
+		Handle window resizes
+		*/
+		function onWindowResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			effect.setSize( window.innerWidth, window.innerHeight );
+		}
+		window.addEventListener( 'resize', onWindowResize, false );
+	</script>
+</html>
