@@ -99,14 +99,31 @@
 		Directions
 		*/
 
-		var oldestImage = new THREE.ImageUtils.loadTexture( "1_enter/images/oldest.png" );
-		var randomImage = new THREE.ImageUtils.loadTexture( "1_enter/images/random.png" );
-		var newestImage = new THREE.ImageUtils.loadTexture( "1_enter/images/newest.png" );
+		var aKeyImage = new THREE.ImageUtils.loadTexture( "1_enter/images/A.png" );
+		var arrowsImage = new THREE.ImageUtils.loadTexture( "1_enter/images/arrows.png" );
+		var eyeImage = new THREE.ImageUtils.loadTexture( "1_enter/images/eye.png" );
+		var dKeyImage = new THREE.ImageUtils.loadTexture( "1_enter/images/D.png" );
+		var eKeysImage = new THREE.ImageUtils.loadTexture( "1_enter/images/E.png" );
+		var qKeyImage = new THREE.ImageUtils.loadTexture( "1_enter/images/Q.png" );
+		var wingtipsImage = new THREE.ImageUtils.loadTexture( "1_enter/images/wingtips.png" );
+		var sKeyImage = new THREE.ImageUtils.loadTexture( "1_enter/images/S.png" );
+		var spaceImage = new THREE.ImageUtils.loadTexture( "1_enter/images/space.png" );
+		var titleImage = new THREE.ImageUtils.loadTexture( "1_enter/images/title.png" );
+		
+		var mouseImage = new THREE.ImageUtils.loadTexture( "1_enter/images/mouse.png" );	
+		/*
+		Single letter keys
+		*/
+		
+		var wKeyImage = new THREE.ImageUtils.loadTexture( "1_enter/images/W.png" );	
 
-		var panelGeometry = new THREE.PlaneBufferGeometry(2,.8);
+
+		var letterGeometry = new THREE.PlaneBufferGeometry(1,1);
 		var panelColor = 0xffffff;
+		var charKeyImages = [aKeyImage, dKeyImage, eKeysImage ]
 
-		var oldestMaterial = new THREE.MeshBasicMaterial( {map: oldestImage, transparent: true, alphaTest: 0.5, color: panelColor});
+		for (i = 0; i < .length; i ++)
+		var aKeyMaterial = new THREE.MeshBasicMaterial( {map: aKeyImage, transparent: true, alphaTest: 0.5, color: panelColor});
 		var randomMaterial = new THREE.MeshBasicMaterial( {map: randomImage, transparent: true, alphaTest: 0.5, color: panelColor});
 		var newestMaterial = new THREE.MeshBasicMaterial( {map: newestImage, transparent: true, alphaTest: 0.5, color: panelColor});
 		
