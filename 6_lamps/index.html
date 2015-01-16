@@ -7,7 +7,7 @@
 		Attribution
 		Mozilla's boilerplate: https://github.com/MozVR/vr-web-examples/tree/master/threejs-vr-boilerplate
 		Andrea: https://github.com/hawksley
-		Music: http://freemusicarchive.org/music/deef/Beat_Scene_Routine/4_-_deef_-_nostalgia_of_an_ex-gangsta-rapper
+		Music: 
 		-->
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
@@ -23,8 +23,7 @@
 	</head>
 
 	<body>
-		<audio id='music' src='deef.mp3' autoplay=true loop=true/>
-		<video id="movie" autoplay=true style="display:none" src="video/light.webm" loop=true muted=true></video>
+		
 	</body>
 
 	
@@ -33,6 +32,7 @@
 	<script src="../js/VREffect.js"></script>
 	<script src="../lib/gl-matrix.js"></script>
 	<script src="../js/VRCursor.js"></script>
+	<script src="../loaders/OBJloader.js"></script>
 
 	<script>
 		/*
@@ -64,36 +64,41 @@
 		effect.setSize( window.innerWidth, window.innerHeight );
 
 		/*
-		Create 3d objects
+		Light
 		*/
 
-		var movie = document.getElementById("movie");
-		var videoTexture = new THREE.Texture(movie);
-		videoTexture.minFilter = THREE.LinearFilter;
-		videoTexture.magFilter = THREE.LinearFilter;
-	
-		var videoMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true, side: THREE.DoubleSide } );
-		var videoGeometry1 = new THREE.SphereGeometry(50, 30, 30);
-		
-		var video1 = new THREE.Mesh( videoGeometry1, videoMaterial );
-		video1.position.z = 0;
-		scene.add( video1 );
+		var light = new THREE.AmbientLight( 0xffffff );
+		light.position
+			scene.add( light );
+
 
 		/*
-		Exit Sign
+		Lamp Model
 		*/
-		var exitImage = THREE.ImageUtils.loadTexture( "exit.png" );
-		var exitGeometry = new THREE.PlaneBufferGeometry( 3, 3);
-		var exitMaterial = new THREE.MeshBasicMaterial( { map: exitImage, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 } );
-		var exitSign = new THREE.Mesh( exitGeometry, exitMaterial );
-		exitSign.position.z = 55;
-		exitSign.position.x = 0;
-		exitSign.position.y = 5;
-		exitSign.rotation.y = 180 * Math.PI/180;
+		
+		var lamp1;
+		var lamp1Texture = new THREE.Texture();
+		var lamp1ImageLoader = new THREE.ImageLoader();
+		lamp1ImageLoader.load( "images/glitter.jpg", function ( image ) {
+				
 
-		scene.add(exitSign);
+		var manager = new THREE.LoadingManager();
+        var loader = new THREE.OBJLoader( manager );
+		loader.load( "objs/Lampshade1.obj", function ( lamp1 ) {
+			lamp1.traverse( function ( child ) {
+						if ( child instanceof THREE.Mesh ) {
+							child.material.map = new THREE.ImageUtils.loadTexture( "images/glitter.jpg");
+						};
+					} );
+			lamp1.scale.set(.02,.02,.02); 
+			lamp1.rotation.set((-90 * Math.PI/180),0,0);
+			lamp1.position.set(0,0,-10);
 
-		var selectable = [exitSign];
+			scene.add( lamp1 );
+
+			});
+
+		var selectable = [];
 		
 		/*
 		create cursor
@@ -123,13 +128,6 @@
 
         		prevSelected = cursor.objectMouseOver;
         	}
-
-        	/*
-			Update movie texture
-			*/	
-			if (movie.readyState === movie.HAVE_ENOUGH_DATA){
-				videoMaterial.map.needsUpdate = true;
-			}
 
 			/*
 			Update VR headset position and apply to camera.

@@ -79,6 +79,15 @@
 		video1.position.z = 0;
 		scene.add( video1 );
 
+		var starsImage = new THREE.ImageUtils.loadTexture( "images/stars.png" );
+		var starsMaterial = new THREE.MeshBasicMaterial( { map: starsImage, side: THREE.DoubleSide } );
+		var starsGeometry = new THREE.SphereGeometry(300, 30, 30);
+		var stars = new THREE.Mesh( starsGeometry, starsMaterial );
+		stars.position.z = 0;
+		scene.add( stars );
+
+
+
 		/*
 		Exit Sign
 		*/
