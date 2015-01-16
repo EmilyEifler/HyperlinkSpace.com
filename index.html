@@ -51,7 +51,7 @@
 	<!--
 	VRControls.js acquires positional information from connected VR devices and applies the transformations to a three.js camera object.
 	 -->
-	<script src="js/VRControls.js"></script>
+	<script src="js/VRControlsPlus.js"></script>
 
 	<!--
 	VREffect.js handles stereo camera setup and rendering.
@@ -59,6 +59,7 @@
 	<script src="js/VREffect.js"></script>
 	<script src="js/VRCursor.js"></script>
 	<script src="js/randomButton.js"></script>
+	<script src="lib/tween.js"></script>
 
 
 	<script>
@@ -96,70 +97,79 @@
 		scene.add( light );
 
 		/*
-		Directions
+		Images
 		*/
-
-		var aKeyImage = new THREE.ImageUtils.loadTexture( "1_enter/images/A.png" );
+		
 		var arrowsImage = new THREE.ImageUtils.loadTexture( "1_enter/images/arrows.png" );
 		var eyeImage = new THREE.ImageUtils.loadTexture( "1_enter/images/eye.png" );
-		var dKeyImage = new THREE.ImageUtils.loadTexture( "1_enter/images/D.png" );
-		var eKeysImage = new THREE.ImageUtils.loadTexture( "1_enter/images/E.png" );
-		var qKeyImage = new THREE.ImageUtils.loadTexture( "1_enter/images/Q.png" );
 		var wingtipsImage = new THREE.ImageUtils.loadTexture( "1_enter/images/wingtips.png" );
-		var sKeyImage = new THREE.ImageUtils.loadTexture( "1_enter/images/S.png" );
 		var spaceImage = new THREE.ImageUtils.loadTexture( "1_enter/images/space.png" );
 		var titleImage = new THREE.ImageUtils.loadTexture( "1_enter/images/title.png" );
-		
-		var mouseImage = new THREE.ImageUtils.loadTexture( "1_enter/images/mouse.png" );	
+		var mouseImage = new THREE.ImageUtils.loadTexture( "1_enter/images/mouse.png" );
+		var singleArrowImage = new THREE.ImageUtils.loadTexture( "1_enter/images/pinkArrow.png" );
+		var wasdKeysImage = new THREE.ImageUtils.loadTexture( "1_enter/images/wasdKeys.png" );
+
 		/*
 		Single letter keys
 		*/
 		
-		var wKeyImage = new THREE.ImageUtils.loadTexture( "1_enter/images/W.png" );	
-
-
-		var letterGeometry = new THREE.PlaneBufferGeometry(1,1);
-		var panelColor = 0xffffff;
-		var charKeyImages = [aKeyImage, dKeyImage, eKeysImage ]
-
-		for (i = 0; i < .length; i ++)
-		var aKeyMaterial = new THREE.MeshBasicMaterial( {map: aKeyImage, transparent: true, alphaTest: 0.5, color: panelColor});
-		var randomMaterial = new THREE.MeshBasicMaterial( {map: randomImage, transparent: true, alphaTest: 0.5, color: panelColor});
-		var newestMaterial = new THREE.MeshBasicMaterial( {map: newestImage, transparent: true, alphaTest: 0.5, color: panelColor});
-		
-		var oldestButton = new THREE.Mesh( panelGeometry, oldestMaterial)
-		var randomButton = new THREE.Mesh( panelGeometry, randomMaterial)
-		var newestButton = new THREE.Mesh( panelGeometry, newestMaterial)
-
-		oldestButton.position.z = -15;
-		oldestButton.position.x = -7;
-		oldestButton.position.y = 0;
-
-		randomButton.position.z = -15;
-		randomButton.position.x = 0;
-		randomButton.position.y = 0;
-
-		newestButton.position.z = -15;
-		newestButton.position.x = 7;
-		newestButton.position.y = 0;
-		
-
-		scene.add(oldestButton);
-		scene.add(randomButton);
-		scene.add(newestButton);
-
-		var selectable =  [oldestButton, newestButton, randomButton];
+		var wKeyImage = new THREE.ImageUtils.loadTexture( "1_enter/images/W.png" );
+		var dKeyImage = new THREE.ImageUtils.loadTexture( "1_enter/images/D.png" );
+		var eKeyImage = new THREE.ImageUtils.loadTexture( "1_enter/images/E.png" );
+		var qKeyImage = new THREE.ImageUtils.loadTexture( "1_enter/images/Q.png" );
 
 		/*
-		Menu
+		First W with Arrow bounce
 		*/
-		var menuImage = new THREE.ImageUtils.loadTexture( "1_enter/images/menu.png" );
-		var menuGeometry = new THREE.PlaneBufferGeometry(25,7);
-		var menuMaterial = new THREE.MeshBasicMaterial( {map: menuImage, transparent: true, alphaTest: 0.5, color: 0xffffff});
-		var menu = new THREE.Mesh( menuGeometry, menuMaterial);
-		menu.position.z = -20;
-		menu.position.y = 7;
-		scene.add(menu);
+
+		var letterGeometry = new THREE.PlaneBufferGeometry(2.5,2.5);
+		var panelColor = 0xffffff;
+
+		var wKeyMaterial = new THREE.MeshBasicMaterial( {map: wKeyImage, transparent: true, alphaTest: 0.5, color: panelColor});
+		var wKey = new THREE.Mesh( letterGeometry, wKeyMaterial );
+		wKey.position.z = -10;
+		wKey.position.y = 2;
+
+		var mouseGeometry = new THREE.PlaneBufferGeometry(4,4);
+		var mouseMaterial = new THREE.MeshBasicMaterial( {map: mouseImage, transparent: true, alphaTest: 0.5, color: panelColor});
+		var mouse = new THREE.Mesh (mouseGeometry, mouseMaterial);
+		mouse.position.z = -10;
+		mouse.position.x = -8;
+		mouse.position.y = -4;
+
+		scene.add(mouse);
+
+ 		var arrowProportion = .629;
+ 		var arrowHeight = 3.5;
+		var arrowGeometry = new THREE.PlaneBufferGeometry(arrowProportion* arrowHeight, arrowHeight);
+		var arrowMaterial = new THREE.MeshBasicMaterial( {map: singleArrowImage, transparent: true, alphaTest: 0.5, color: panelColor})
+		var arrow = new THREE.Mesh( arrowGeometry, arrowMaterial );
+
+
+		var arrowPosition = { y: 4.5 };
+		var tweenUp = new TWEEN.Tween(arrowPosition)
+				.to({y:10}, 1500)
+				.easing(TWEEN.Easing.Elastic.InOut)
+				.onUpdate(tweenUpdate);
+
+		var tweenDown = new TWEEN.Tween(arrowPosition)
+				.to({y: 4.5}, 1500)
+				.delay(800)
+				.easing(TWEEN.Easing.Cubic.Out)
+				.onUpdate(tweenUpdate);
+			tweenUp.chain(tweenDown);
+			tweenDown.chain(tweenUp);
+			tweenUp.start();
+
+		function tweenUpdate(){
+			arrow.position.y = arrowPosition.y;
+		}
+		
+
+		arrow.position.z = -9;
+		scene.add(arrow);
+		scene.add(wKey);
+		tweenUp.start();
 
 		/*
 		Title
@@ -171,6 +181,88 @@
 		title.position.z = -20;
 		title.position.y = 25;
 		scene.add(title);
+
+		var titleHitZoneImage = new THREE.ImageUtils.loadTexture( "1_enter/images/transparent.png" );
+		var titleHitZoneGeometry = new THREE.PlaneBufferGeometry(100,30);
+		var titleHitZoneMaterial = new THREE.MeshBasicMaterial( { map: titleHitZoneImage, alphaTest: 0.5, transparent: true });
+		titleHitZone = new THREE.Mesh ( titleHitZoneGeometry, titleHitZoneMaterial );
+		titleHitZone.position.z = -19;
+		titleHitZone.position.y = 25;
+		scene.add(titleHitZone);
+
+		/*
+		WASD with Title and arrow
+		*/
+		var wasdKeysMaterial = new THREE.MeshBasicMaterial( {map: wasdKeysImage, transparent: true, alphaTest: 0.5, color: panelColor});
+		var wasdKeysGeometry = new THREE.PlaneBufferGeometry(12,12);
+		var wasdKeys = new THREE.Mesh( wasdKeysGeometry, wasdKeysMaterial );
+		wasdKeys.position.x = 17;
+		wasdKeys.position.y = 21;
+		wasdKeys.position.z = -15;
+		scene.add(wasdKeys);
+
+		var arrowHeight2 = 5;
+		var arrowGeometry2 = new THREE.PlaneBufferGeometry(arrowProportion* arrowHeight2, arrowHeight2);
+		var arrow2 = new THREE.Mesh( arrowGeometry2, arrowMaterial );
+		var arrowPosition2 = { x:19 };
+		var tweenUp2 = new TWEEN.Tween(arrowPosition2)
+				.to({x:23}, 1000)
+				.easing(TWEEN.Easing.Elastic.InOut)
+				.onUpdate(tweenUpdate);
+
+		var tweenDown2 = new TWEEN.Tween(arrowPosition2)
+				.to({x:19}, 1000)
+				.easing(TWEEN.Easing.Cubic.Out)
+				.onUpdate(tweenUpdate2);
+			tweenUp2.chain(tweenDown2);
+			tweenDown2.chain(tweenUp2);
+			tweenUp2.start();
+
+		function tweenUpdate2(){
+			arrow2.position.x = arrowPosition2.x;
+		}
+
+		arrow2.position.z = -14;
+		arrow2.position.y = 15.5;
+		arrow2.rotation.z = -90 * Math.PI / 180;
+
+		scene.add(arrow2);
+		tweenUp2.start();
+
+		/*
+		Q and E Keys with Arrows and Hit Zone 2
+		*/		
+		var wingtipsMaterial = new THREE.MeshBasicMaterial( {map: wingtipsImage, transparent: true, alphaTest: 0.5, color: panelColor});
+		var wingtipsGeometry = new THREE.PlaneBufferGeometry(6,6);
+		var wingtips = new THREE.Mesh( wingtipsGeometry, wingtipsMaterial );
+		wingtips.position.x = 15;
+		wingtips.position.y = 4.5;
+		wingtips.rotation.y = -90 * Math.PI/180;
+		scene.add(wingtips);
+
+		var letterGeometry2 = new THREE.PlaneBufferGeometry(1.5,1.5);
+		var eKeyMaterial = new THREE.MeshBasicMaterial( {map: eKeyImage, transparent: true, alphaTest: 0.5, color: panelColor});
+		var eKey = new THREE.Mesh( letterGeometry2, eKeyMaterial );
+		var qKeyMaterial = new THREE.MeshBasicMaterial( {map: qKeyImage, transparent: true, alphaTest: 0.5, color: panelColor});
+		var qKey = new THREE.Mesh( letterGeometry2, qKeyMaterial );
+		eKey.position.x = 14;
+		eKey.position.y = 6;
+		eKey.position.z = 3.5;
+		eKey.rotation.y = -90 * Math.PI/180;
+		qKey.position.x = 14;
+		qKey.position.y = 6;
+		qKey.position.z = -3.5;
+		qKey.rotation.y = -90 * Math.PI/180;
+		scene.add(eKey);
+		scene.add(qKey);
+
+		var wingsHitZoneGeometry = new THREE.PlaneBufferGeometry(15,15);
+		var wingsHitZoneMaterial = new THREE.MeshBasicMaterial( { map: titleHitZoneImage, alphaTest: 0.5, transparent: true });
+		wingsHitZone = new THREE.Mesh ( wingsHitZoneGeometry, wingsHitZoneMaterial );
+		wingsHitZone.position.x = 13;
+		wingsHitZone.position.y = 4.5;
+		wingsHitZone.rotation.y = -90 * Math.PI/180;
+		scene.add(wingsHitZone);
 		
 		/*
 		Credits
@@ -186,17 +278,102 @@
 		scene.add(credits);
 
 		/*
+		After Wings, D key and Arrow
+		*/
+
+		var dKeyMaterial = new THREE.MeshBasicMaterial({map: dKeyImage, transparent: true, color: panelColor});
+		var dKey = new THREE.Mesh( letterGeometry2, dKeyMaterial);
+		dKey.position.z = 10;
+		dKey.position.x = 11;
+		dKey.position.y = -4.5;
+		dKey.rotation.y = 180 * (Math.PI/180);
+		scene.add(dKey);
+
+		var arrowHeight3 = 3.5;
+		var arrowGeometry3 = new THREE.PlaneBufferGeometry(arrowProportion* arrowHeight3, arrowHeight3);
+		var arrow3 = new THREE.Mesh( arrowGeometry3, arrowMaterial );
+
+
+		var arrowPosition3 = { x: 12 };
+		var tweenUp3 = new TWEEN.Tween(arrowPosition3)
+				.to({x:18}, 1000)
+				.easing(TWEEN.Easing.Elastic.InOut)
+				.onUpdate(tweenUpdate);
+
+		var tweenDown3 = new TWEEN.Tween(arrowPosition3)
+				.to({x: 12}, 1000)
+				.easing(TWEEN.Easing.Cubic.Out)
+				.onUpdate(tweenUpdate3);
+			tweenUp3.chain(tweenDown3);
+			tweenDown3.chain(tweenUp3);
+			tweenUp3.start();
+
+		function tweenUpdate3(){
+			arrow3.position.x = arrowPosition3.x;
+		}
+		
+		arrow3.rotation.y = -180 * (Math.PI/180);
+		arrow3.rotation.z = 90 * (Math.PI/180);
+		arrow3.position.z = 9;
+		arrow3.position.y = -4.25;
+		scene.add(arrow3);
+		tweenUp3.start();
+
+		/*
+		Eye
+		*/
+
+		var eyeMaterial = new THREE.MeshBasicMaterial({map: eyeImage, transparent: true});
+		var eyeGeometry = new THREE.PlaneBufferGeometry(7, 4);
+		var eye = new THREE.Mesh( eyeGeometry, eyeMaterial );
+		eye.position.z = 9;
+		eye.position.x = -3;
+		eye.position.y = -1;
+		eye.rotation.y = 180 * Math.PI/180;
+		scene.add(eye);
+
+		var spacebarMaterial = new THREE.MeshBasicMaterial({map: spaceImage, transparent: true});
+		var spacebarGeometry = new THREE.PlaneBufferGeometry(3.5, 1.5);
+		var spacebar = new THREE.Mesh( spacebarGeometry, spacebarMaterial );
+		spacebar.position.z = 9;
+		spacebar.position.x = -2;
+		spacebar.position.y = -3.9;
+		spacebar.rotation.y = 180 * Math.PI/180;
+		scene.add(spacebar);
+		
+		/*
+		Arrow Keys
+		*/
+		var arrowsGeometry = new THREE.PlaneBufferGeometry(7,7);
+		var arrowsMaterial = new THREE.MeshBasicMaterial({map: arrowsImage, transparent: true});
+		var arrows = new THREE.Mesh( arrowsGeometry, arrowsMaterial );
+		arrows.position.x = -13;
+		arrows.rotation.y = 180 * Math.PI/180;
+		arrows.position.y = -3;
+		arrows.position.z = 12.5;
+		scene.add(arrows);
+
+		/*
+		Exit Sign
+		*/
+		var exitImage = new THREE.ImageUtils.loadTexture("1_enter/images/exit.png");
+		var exitMaterial = new THREE.MeshBasicMaterial({map: exitImage, transparent: true});
+		var exitGeometry = new THREE.PlaneBufferGeometry(2,1);
+		var exitSign = new THREE.Mesh( exitGeometry, exitMaterial );
+
+		exitSign.position.x = -12;
+		exitSign.rotation.y = 90 * Math.PI/180;
+		exitSign.position.z = -.37;
+		scene.add(exitSign);
+
+		/*
 		Background
 		*/
-		
 		var backgroundGeometry = new THREE.SphereGeometry(100,32,32);
 		var backgroundMaterial = new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture("1_enter/images/background.png"), side: THREE.DoubleSide});
 		var background = new THREE.Mesh( backgroundGeometry, backgroundMaterial);
-		
-		background.rotation.y = 0 * Math.PI/180;
+		background.rotation.z = 2 * Math.PI/180;
 		scene.add(background);
-
-
 
 		/*
 		create cursor
@@ -208,14 +385,23 @@
 	    	cursor.enable();
 	    });
 
+		/*
+		Variables needed by Animate
+		*/
+		var selectable =  [titleHitZone, wingsHitZone, exitSign, spacebar];
 		var prevSelected = null;
+		var spacebarAudio = new Audio('1_enter/audio/giggle.ogg');
 
+		/*
+		Stuff to Animate
+		*/
 		function animate() {
 			if (cursor.enabled) {
         		cursor.updatePosition();
 
         		if ( cursor.objectMouseOver !== null && prevSelected !== cursor.objectMouseOver) {
-        			cursor.objectMouseOver.material.color.set(0xFF944D);
+        			cursor.objectMouseOver.material.color.set(0x4D4DFF
+);
         		} 
 
         		if (prevSelected !== null && prevSelected !== cursor.objectMouseOver) {
@@ -223,8 +409,19 @@
         		}
 
         		prevSelected = cursor.objectMouseOver;
+        
         	}
+       
+       		if (cursor.objectMouseOver == titleHitZone){
+       			tweenUp.stop();
+       		}
+       		if (cursor.objectMouseOver == wingsHitZone){
+       			tweenUp2.stop();
+       		}
 
+       		
+
+        TWEEN.update();
 		/*
 		Update VR headset position and apply to camera.
 		*/
@@ -240,15 +437,15 @@
 		*/
 		animate();
 
-		//links
+		/*
+		Links
+		*/
 
 		function link(){
-			if(cursor.objectMouseOver == oldestButton){
+			if(cursor.objectMouseOver == exitSign){
 				window.location="http://hyperlinkspace.com/2_horse/";
-			}else if (cursor.objectMouseOver == randomButton){
-				window.location=getRandomPage();
-			}else if (cursor.objectMouseOver == newestButton){
-				window.location=newestPage;
+			}else if (cursor.objectMouseOver == spacebar){
+				spacebarAudio.play();
 			}
 		 }
 
@@ -276,19 +473,6 @@
 
 	  window.addEventListener("keydown", onkey, true);
 
-	  	  //hold down keys to do rotations and stuff
-	  	var speed = .4;
-		function key(event, sign) {
-		  var control = controls.manualControls[String.fromCharCode(event.keyCode).toLowerCase()];
-		  if (!control)
-		    return;
-		  if (sign === speed && control.active || sign === -speed && !control.active)
-		    return;
-		  control.active = (sign === speed);
-		  controls.manualRotateRate[control.index] += sign * control.sign;
-		}
-		document.addEventListener('keydown', function(event) { key(event, speed); }, false);
-		document.addEventListener('keyup', function(event) { key(event, -speed); }, false);
 
 		/*
 		Handle window resizes
