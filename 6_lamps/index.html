@@ -33,8 +33,12 @@
 	<script src="../lib/gl-matrix.js"></script>
 	<script src="../js/VRCursor.js"></script>
 	<script src="../loaders/OBJloader.js"></script>
+	<script src="../physics/physi.js"></script>
 
 	<script>
+
+	 // Physijs.scripts.worker = '/physics/physijs_worker.js';
+  //   Physijs.scripts.ammo = '/physics/ammo.js';
 		/*
 		Setup three.js WebGL renderer
 		*/
@@ -66,37 +70,86 @@
 		/*
 		Light
 		*/
-
 		var light = new THREE.AmbientLight( 0xffffff );
-		light.position
-			scene.add( light );
+		light.castShadow = true;
+		light.intensity = 10;
+		scene.add( light );
 
+		var light1 = new THREE.PointLight( 0x78FFC2, .5, 0 );
+		light1.castShadow = true;
+
+		var light2 = new THREE.PointLight( 0xFF5050, 1, 0 );
+		light2.castShadow = true;
+		scene.add (light2);
+
+		/*
+		Floor
+		*/
+		var floorImage = new THREE.ImageUtils.loadTexture( "images/stone.jpg" );
+		floorImage.wrapS = floorImage.wrapT = THREE.RepeatWrapping; 
+		floorImage.repeat.set( 10, 10 );
+		var floorGeometry = new THREE.PlaneBufferGeometry( 100, 100, 10 );
+		var floorMaterial = new THREE.MeshBasicMaterial( {map: floorImage, color: 0x0475a1, side: THREE.DoubleSide} );
+		var floor = new THREE.Mesh( floorGeometry, floorMaterial );
+		floor.rotation.x = 90 * Math.PI/180;
+		floor.position.y = -5;
+		scene.add( floor );
 
 		/*
 		Lamp Model
 		*/
-		
-		var lamp1;
-		var lamp1Texture = new THREE.Texture();
-		var lamp1ImageLoader = new THREE.ImageLoader();
-		lamp1ImageLoader.load( "images/glitter.jpg", function ( image ) {
-				
-
-		var manager = new THREE.LoadingManager();
-        var loader = new THREE.OBJLoader( manager );
-		loader.load( "objs/Lampshade1.obj", function ( lamp1 ) {
-			lamp1.traverse( function ( child ) {
-						if ( child instanceof THREE.Mesh ) {
-							child.material.map = new THREE.ImageUtils.loadTexture( "images/glitter.jpg");
-						};
-					} );
-			lamp1.scale.set(.02,.02,.02); 
-			lamp1.rotation.set((-90 * Math.PI/180),0,0);
-			lamp1.position.set(0,0,-10);
-
+		var lamp1;	
+        var loader = new THREE.OBJLoader();
+		loader.load( "objs/Lampshade1.obj", function ( obj ) {
+			obj.children[0].material = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: 0xdddddd, specular: 0x009900, shininess: 30, shading: THREE.SmoothShading } );
+			obj.children[0].geometry.computeFaceNormals();
+			obj.children[0].geometry.computeVertexNormals();
+			obj.children[0].flipSided = true;
+			obj.children[0].doubleSided = true;
+			obj.castShadow = true;
+			obj.scale.set(.05,.05,.05); 
+			obj.rotation.set((-90 * Math.PI/180),0,0);
+			obj.position.set(0,10,-10);
+			lamp1 = obj;
+			lamp1.add( light1 );
 			scene.add( lamp1 );
+		});
+		
 
-			});
+		var loader = new THREE.OBJLoader();
+		loader.load( "objs/creature3.obj", function ( obj ) {
+			obj.children[0].material = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: 0xdddddd, specular: 0x009900, shininess: 30, shading: THREE.SmoothShading } );
+			obj.children[0].geometry.computeFaceNormals();
+			obj.children[0].geometry.computeVertexNormals();
+			obj.children[0].flipSided = true;
+			obj.children[0].doubleSided = true;
+			obj.castShadow = true;
+			obj.scale.set(1,1,1); 
+			obj.rotation.set((-90 * Math.PI/180),0,0);
+			obj.position.set(0,10,-10);
+			lamp1 = obj;
+			lamp1.add( light1 );
+			scene.add( lamp1 );
+		});
+
+
+		var lamp2;
+		loader.load( "objs/Lampshade2.obj", function ( obj ) {
+			obj.children[0].material.map = THREE.ImageUtils.loadTexture('images/glitter.jpg');
+			obj.children[0].geometry.computeFaceNormals();
+			obj.children[0].geometry.computeVertexNormals();
+			obj.children[0].flipSided = true;
+			obj.children[0].doubleSided = true;
+			obj.castShadow = true;
+			obj.scale.set(.05,.05,.05); 
+			obj.rotation.set((-90 * Math.PI/180),0,0);
+			obj.position.set(0,10,0);
+			lamp2 = obj;
+			lamp2.add( light2 );
+			scene.add( lamp2 );
+		});
+
+		
 
 		var selectable = [];
 		
@@ -134,11 +187,17 @@
 			*/
 			controls.update();
 
+			if (camera.position.y != 0){
+				camera.position.y = 0;
+			}
+
 			/*
 			Render the scene through the VREffect.
 			*/
+			// scene.simulate();
 			effect.render( scene, camera );
 			requestAnimationFrame( animate );
+
 		}
 
 		/*
