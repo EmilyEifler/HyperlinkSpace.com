@@ -191,7 +191,7 @@
 		Laptop table
 		*/			
 
-		var tableTexture = THREE.ImageUtils.loadTexture( "images/laptopnofloor.png" );
+		var tableTexture = THREE.ImageUtils.loadTexture( "images/laptopnofloorsmall.png" );
 		var tableGeometry = new THREE.PlaneBufferGeometry( 15, 20);
 		var tableMaterial = new THREE.MeshBasicMaterial( { map: tableTexture, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 } );
 		var table = new THREE.Mesh( tableGeometry, tableMaterial );
@@ -205,7 +205,7 @@
 		Arrow table
 		*/
 
-		var arrowtableTexture = THREE.ImageUtils.loadTexture( "images/table.png" );
+		var arrowtableTexture = THREE.ImageUtils.loadTexture( "images/tablesmall.png" );
 		var arrowtableGeometry = new THREE.PlaneBufferGeometry( 15, 20);
 		var arrowtableMaterial = new THREE.MeshBasicMaterial( { map: arrowtableTexture, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 } );
 		var arrowtable = new THREE.Mesh( arrowtableGeometry, arrowtableMaterial );

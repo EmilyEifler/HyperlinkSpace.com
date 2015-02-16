@@ -48,7 +48,7 @@ function VRCursor(mode) {
       self.projector = new THREE.Projector();
 
       // cursor (line)
-      var material = new THREE.LineBasicMaterial({color: 0xFF33CC, linewidth: 7});
+      var material = new THREE.LineBasicMaterial({color: 0xFF33CC, linewidth: 5});
       var geometry = new THREE.CircleGeometry( 0.03, 32 );
       geometry.vertices.shift(); // remove center vertex
       self.cursor = new THREE.Line( geometry, material );

@@ -7,10 +7,49 @@
 
 THREE.VRControls = function ( camera, done ) {
 
+	//---game controller stuff---
+	this.haveEvents = 'ongamepadconnected' in window;
+	this.controllers = {};
 	this._camera = camera;
 
 	this._init = function () {
 		var self = this;
+
+		function connecthandler(e) {
+			addgamepad(e.gamepad);
+		}
+
+		function addgamepad(gamepad) {
+			self.controllers[gamepad.index] = gamepad;
+		}
+
+		function disconnecthandler(e) {
+			removegamepad(e.gamepad);
+		}
+
+		function removegamepad(gamepad) {
+			delete self.controllers[gamepad.index];
+		}
+
+		function scangamepads() {
+			var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads() : []);
+			for (var i = 0; i < gamepads.length; i++) {
+				if (gamepads[i]) {
+					if (gamepads[i].index in self.controllers) {
+						self.controllers[gamepads[i].index] = gamepads[i];
+					} else {
+						addgamepad(gamepads[i]);
+					}
+				}
+			}
+		}
+
+		window.addEventListener("gamepadconnected", connecthandler);
+		window.addEventListener("gamepaddisconnected", disconnecthandler);
+		if (!self.haveEvents) {
+			setInterval(scangamepads, 500);
+		}
+
 		if ( !navigator.mozGetVRDevices && !navigator.getVRDevices ) {
 			if ( done ) {
 				done("Your browser is not VR Ready");
@@ -70,11 +109,25 @@ THREE.VRControls = function ( camera, done ) {
 		var newTime = performance.now();
 		this.updateTime = newTime;
 
-	  var interval = (newTime - oldTime) * 0.001;
+		var interval = (newTime - oldTime) * 0.001;
 
-	  // camera.position = camera.position.add(getFwdVector());
+		// camera.position = camera.position.add(getFwdVector());
 
-	  ///do translation 
+		/*
+		Get controller button info
+		*/
+		var j;
+
+		for (j in this.controllers) {
+			var controller = this.controllers[j];
+
+			this.manualMoveRate[1] = -1 * Math.round(controller.axes[0]);
+			this.manualMoveRate[0] = Math.round(controller.axes[1]);
+			this.manualRotateRate[1] = -1 * Math.round(controller.axes[2]);
+			this.manualRotateRate[0] = -1 * Math.round(controller.axes[3]);
+		}
+
+		///do translation 
 		var offset = new THREE.Vector3();
 		if (this.manualMoveRate[0] != 0 || this.manualMoveRate[1] != 0 || this.manualMoveRate[2] != 0){
 		    offset = getFwdVector().multiplyScalar(4 * interval * this.manualMoveRate[0]).add(
@@ -84,11 +137,11 @@ THREE.VRControls = function ( camera, done ) {
 
 		camera.position = camera.position.add(offset);
 
-	  var update = quat.fromValues(this.manualRotateRate[0] * interval,
-	                               this.manualRotateRate[1] * interval,
-	                               this.manualRotateRate[2] * interval, 1.0);
-	  quat.normalize(update, update);
-	  quat.multiply(manualRotation, manualRotation, update);
+		var update = quat.fromValues(this.manualRotateRate[0] * interval,
+		                               this.manualRotateRate[1] * interval,
+		                               this.manualRotateRate[2] * interval, 1.0);
+		quat.normalize(update, update);
+		quat.multiply(manualRotation, manualRotation, update);
 
 		if ( camera ) {
 			if ( !vrState ) {
@@ -98,16 +151,15 @@ THREE.VRControls = function ( camera, done ) {
 
 			// Applies head rotation from sensors data.
 			var totalRotation = quat.create();
-      var state = vrState.hmd.rotation;
-      if (vrState.hmd.rotation[0] !== 0 ||
-					vrState.hmd.rotation[1] !== 0 ||
-					vrState.hmd.rotation[2] !== 0 ||
-					vrState.hmd.rotation[3] !== 0) {
-        quat.multiply(totalRotation, vrState.hmd.rotation, manualRotation);
-      } else {
-        totalRotation = manualRotation;
-      }
-
+		    var state = vrState.hmd.rotation;
+		    if (vrState.hmd.rotation[0] !== 0 ||
+							vrState.hmd.rotation[1] !== 0 ||
+							vrState.hmd.rotation[2] !== 0 ||
+							vrState.hmd.rotation[3] !== 0) {
+		        quat.multiply(totalRotation, manualRotation, vrState.hmd.rotation);
+		    } else {
+		        totalRotation = manualRotation;
+		    }
 			camera.quaternion.fromArray( totalRotation );
 		}
 	};
