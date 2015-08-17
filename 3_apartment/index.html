@@ -55,6 +55,7 @@
 	-->
 	<script src="../js/VREffect.js"></script>
 	<script src="../js/VRCursor.js"></script>
+	<script src="../js/PhoneVR.js"></script>
 
 	<!--
 	Brings font to the party
@@ -373,8 +374,7 @@
         		cursor.updatePosition();
 
         		if ( cursor.objectMouseOver !== null && prevSelected !== cursor.objectMouseOver) {
-        			cursor.objectMouseOver.material.color.set(0x003300
-);
+        			cursor.objectMouseOver.material.color.set(0x003300);
         		} 
 
         		if (prevSelected !== null && prevSelected !== cursor.objectMouseOver) {

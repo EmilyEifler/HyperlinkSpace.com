@@ -1,0 +1,409 @@
+<!--
+
+This is the standard ThreeJS-based boilerplate for webVR
+	currently being used by the eleVR team.
+
+It has oculus support for webVR browsers, support for the non-VR web,
+	and support for smartphone on google cardboard or similar VR device.
+
+Supported Navigation Controls:
+	WASD + E/Q navigation support for rotation.
+	Arrow key navigation support for moving the location of the camera.
+	Gamepad joystick navigation controls.
+	Orientation control with a VR headset OR mobile phone.
+
+Click to enter full-screen VR mode.
+
+This boilerplate is based on Mozilla's boilerplate: https://github.com/MozVR/vr-web-examples/tree/master/threejs-vr-boilerplate
+
+It has been developed with the help of a great many people including (but not limited to) Vi Hart, Andrew Lutomirski, Henry Segerman, and the Firefox webVR team.
+
+-->
+
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>webVR boilerplate</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000;
+				color: #fff;
+				margin: 0px;
+				padding: 0;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+
+	<body>
+		<audio id='rainAudio' src='images/rain.ogg' loop = true>
+		<audio id='dogAudio' src='images/panting.ogg' loop = true>
+		<video id="movie" autoplay=true style="display:none" src="images/eyes.mp4" loop=true muted=true></video>
+		
+		
+	</body>
+
+	<!--
+	three.js 3d library
+	-->
+	<script src="../js/three.min.js"></script>
+
+	<!--
+	PhoneVR acquires positional information from phone orientation. This is used by VRControls.js
+	VRControls.js acquires positional information from connected VR devices and applies the transformations to a three.js camera object.
+	 -->
+
+	<script src="../js/PhoneVR.js"></script>
+	<script src="../js/VRControls.js"></script>
+
+	<!--
+	VREffect.js handles stereo camera setup and rendering.
+	-->
+	<script src="../js/VREffect.js"></script>
+
+	<!--
+	Additional sources
+	-->
+	<script src="../lib/threex.chromakey.js"></script>
+	<script src="particles.js"></script>
+	<script src="../js/VRCursor.js"></script>
+
+	<script>
+		// Setup three.js WebGL renderer
+		var renderer = new THREE.WebGLRenderer( { antialias: true } );
+		
+
+		// Append the canvas element created by the renderer to document body element.
+		document.body.appendChild( renderer.domElement );
+
+		//Create a three.js scene
+		var scene = new THREE.Scene();
+
+		//Create a three.js camera
+		var camera = new THREE.PerspectiveCamera( 110, window.innerWidth / window.innerHeight, 2, 10000 );
+		camera.position.y = -10;
+		camera.position.x = 8;
+		camera.position.z = 5;
+		scene.add(camera);
+
+		//Apply VR headset positional data to camera.
+		var controls = new THREE.VRControls( camera );
+		// controls.enableGamepad(false);
+		// controls.enableWASD(false);
+		// controls.enableArrows(false);
+
+		//Apply VR stereo rendering to renderer
+		var effect = new THREE.VREffect( renderer );
+		effect.setSize( window.innerWidth, window.innerHeight );
+
+		/*
+		Cube walls
+		*/
+		var bridgeImage = new THREE.MeshBasicMaterial({color: 0xffffff, map: new THREE.ImageUtils.loadTexture( "images/bridge.png" ), side: THREE.DoubleSide});
+		var billboardImage = new THREE.MeshBasicMaterial({color: 0xffffff, map: new THREE.ImageUtils.loadTexture( "images/billboard.png" ), side: THREE.DoubleSide});
+		var bottomImage = new THREE.MeshBasicMaterial({color: 0xffffff, map: new THREE.ImageUtils.loadTexture( "images/bottom.png" ), side: THREE.DoubleSide});
+		var topImage = new THREE.MeshBasicMaterial({color: 0xffffff, map: new THREE.ImageUtils.loadTexture( "images/sky.png" ), side: THREE.DoubleSide});
+		var cityImage = new THREE.MeshBasicMaterial({color: 0xffffff, map: new THREE.ImageUtils.loadTexture( "images/city.png" ), side: THREE.DoubleSide});
+		var movie = document.getElementById("movie");
+		var videoTexture = new THREE.Texture(movie);
+		videoTexture.minFilter = THREE.LinearFilter;
+		videoTexture.magFilter = THREE.LinearFilter;
+		var treeImage = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true, side: THREE.DoubleSide } );
+		var materials = [ bridgeImage, treeImage, topImage,  bottomImage, billboardImage, cityImage ];
+		var diceGeometry = new THREE.BoxGeometry( 30, 30, 30);
+		var diceMaterial = new THREE.MeshFaceMaterial( materials );
+		var dice = new THREE.Mesh(diceGeometry, diceMaterial);
+		dice.frustumCulled = false;
+		scene.add( dice );
+
+		/*
+		Dog video
+		*/
+		var dogVideoMaterial = new THREEx.ChromaKeyMaterial("images/dog.mp4", 0xd432);
+		var dogVideoGeometry = new THREE.PlaneBufferGeometry( 5, 5);
+		var dogVideoObject = new THREE.Mesh( dogVideoGeometry, dogVideoMaterial );
+		dogVideoObject.position.x = -10;
+		dogVideoObject.position.y = -12.3;
+		dogVideoObject.position.z = 4.5;
+		dogVideoObject.rotation.y = 90 * Math.PI/180;
+		scene.add( dogVideoObject );
+
+		/*
+		Walking video
+		*/
+		var walkingVideoMaterial = new THREEx.ChromaKeyMaterial( "images/pacing.mp4", 0xd432);
+		var walkingVideoGeometry = new THREE.PlaneBufferGeometry( 3, 6);
+		var walkingVideoObject = new THREE.Mesh( walkingVideoGeometry, walkingVideoMaterial );
+		walkingVideoObject.position.x = 14.5;
+		walkingVideoObject.position.y = -8;
+		walkingVideoObject.position.z = 0;
+		walkingVideoObject.rotation.y = -90 * Math.PI/180;
+		walkingVideoObject.material.side = THREE.DoubleSide;
+		scene.add( walkingVideoObject );
+	
+		/*
+		Bunny video
+		*/
+		var bunnyVideoMaterial = new THREEx.ChromaKeyMaterial("images/bunny.mp4", 0xd432);
+		var bunnyVideoGeometry = new THREE.PlaneBufferGeometry( 8, 4);
+		var bunnyVideoObject = new THREE.Mesh( bunnyVideoGeometry, bunnyVideoMaterial );
+		bunnyVideoObject.position.x = 8;
+		bunnyVideoObject.position.y = -12.5;
+		bunnyVideoObject.position.z = -11;
+		scene.add( bunnyVideoObject );
+
+		/*
+		Bird video
+		*/
+		var birdVideoMaterial = new THREEx.ChromaKeyMaterial("images/bird.mp4", 0xd432);
+		var birdVideoGeometry = new THREE.PlaneBufferGeometry( 8, 4);
+		var birdVideoObject = new THREE.Mesh( birdVideoGeometry, birdVideoMaterial );
+		birdVideoObject.position.y = 10;
+		scene.add( birdVideoObject );
+		birdVideoObject.lookAt( camera.position );
+
+		/*
+		Particle system
+		*/
+		scene.add(particleSystem);
+
+		/*
+		Exit Sign
+		*/
+		var exitImage = new THREE.ImageUtils.loadTexture("images/exit.png");
+		var exitMaterial = new THREE.MeshBasicMaterial({map: exitImage, transparent: true});
+		var exitGeometry = new THREE.PlaneBufferGeometry(2,1);
+		var exitSign = new THREE.Mesh( exitGeometry, exitMaterial );
+
+		exitSign.position.x = -12;
+		exitSign.rotation.y = 90 * Math.PI/180;
+		exitSign.position.z = -.37;
+		scene.add(exitSign);
+
+		/*
+		Rain Button
+		*/
+		var rainTextMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, map: new THREE.ImageUtils.loadTexture( "images/rain.png" ), side: THREE.DoubleSide, transparent: true});
+		var rainTextGeometry = new THREE.PlaneBufferGeometry (5, 5);
+		var rainText = new THREE.Mesh( rainTextGeometry, rainTextMaterial );
+		rainText.position.x = 2;
+		rainText.position.y = -12.5;
+		rainText.position.z = 11;
+		rainText.rotation.y = 180 * Math.PI/180;
+		scene.add(rainText);
+
+
+		var rainButtonMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, map: new THREE.ImageUtils.loadTexture( "images/raindrop.png" ), side: THREE.DoubleSide, transparent: true});
+		var rainButtonGeometry = new THREE.PlaneBufferGeometry (3, 3);
+		var rainButton = new THREE.Mesh( rainButtonGeometry, rainButtonMaterial );
+		rainButton.position.x = -2;
+		rainButton.position.z = 11;
+		rainButton.rotation.y = 180 * Math.PI/180;
+		scene.add(rainButton);
+
+		/*
+		List of selectable objects
+		*/
+		var selectable = [rainButton, dogVideoObject, exitSign];
+
+		/*
+		Create Cursor
+		*/
+		var cursor = new VRCursor();
+		cursor.ready.then(function() {
+	    	scene.add(cursor.layout);
+	    	cursor.init(renderer.domElement, camera, scene, selectable);
+	    	cursor.enable();
+	    });
+
+		/*
+		Rain Game
+		*/
+		var c = 0;
+		var rainSecs = 10;
+		var maxTimer = rainSecs * 60;
+	    function rainGame(){
+			if(cursor.objectMouseOver == rainButton){
+				c = maxTimer;
+				}
+			}
+
+		/*
+		Rain Game Audio
+		*/
+		var rainAudio = document.getElementById("rainAudio");
+		var dogAudio = document.getElementById("dogAudio");
+		dogAudio.volume = .5;
+		
+		/*
+		Request animation frame loop function
+		*/
+		var t = 1;
+		var r = 1;
+		var prevSelected = null;
+		var raining = 0;
+
+		function animate() {
+			//Update movie textures	
+			if (movie.readyState === movie.HAVE_ENOUGH_DATA){
+				treeImage.map.needsUpdate = true;
+			}
+			dogVideoMaterial.update();
+			walkingVideoMaterial.update();
+			bunnyVideoMaterial.update();
+			birdVideoMaterial.update();
+
+			//Rain Button animation
+			r += .05;
+			rainButton.position.y = (Math.sin(r)/3)-11.5;
+
+			//Walking animation
+			t += .007; 
+			t = t%(2*Math.PI);
+			walkingVideoObject.position.z = (Math.cos(t)*10);
+
+			if (t< Math.PI){
+				walkingVideoObject.rotation.y = (90 * Math.PI/180 );
+			} else {
+				walkingVideoObject.rotation.y = (-90 * Math.PI/180 );
+			};
+
+			//Flying animation
+			birdVideoObject.position.x = -8 *(Math.sin(t * 2 * Math.PI));
+    		birdVideoObject.position.z = 8 *(Math.cos(t * 2 * Math.PI));
+
+    		//Particle Stuffs
+    		var pCount = particleCount;
+    		if (c > 0){
+    			while (pCount--) {
+			    // get the particle
+			    var particle = particles.vertices[pCount];
+			    // do stuff to the particle the particle
+    		 	if (particle.y < -30) {
+			      particle.y = 30;
+			      particle.velocity.y = (-Math.random() - .01) * 6;
+			    }
+			 	particle.y += particle.velocity.y;
+			 }
+    		} else if (c < 0){
+    			while (pCount--){
+    				var particle = particles.vertices[pCount];
+    				particle.y += particle.velocity.y;
+    			}
+    			
+    		} else if (raining === 0 && c === maxTimer){
+    			while (pCount--){
+    				var particle = particles.vertices[pCount];
+    				particle.y = (Math.random() * 40) - 20;
+    			}
+    			
+    		}
+
+    		if (c>0){
+    			rainAudio.play();
+    		} else {
+    			rainAudio.pause();
+    		}
+
+    		
+    		//Rain Game
+        	if (c > -1){
+        		raining = c;
+        		c--;
+        	}
+
+			//The Rain button hilighter
+			if (cursor.enabled) {
+        		cursor.updatePosition();
+
+        		if ( cursor.objectMouseOver === selectable[0] && cursor.objectMouseOver !== null && prevSelected !== cursor.objectMouseOver) {
+        			cursor.objectMouseOver.material.color.set(0x66FFFF);
+        		} 
+
+        		if (cursor.objectMouseOver !== selectable[0] && prevSelected === selectable[0]) {
+        			prevSelected.material.color.set(0xffffff);
+        		}
+
+        		if ( cursor.objectMouseOver === selectable[1] ) {
+        			dogAudio.play();
+        		} else {
+        			dogAudio.pause();
+        		}
+
+        		prevSelected = cursor.objectMouseOver;
+
+        		if (cursor.objectMouseOver == exitSign){
+       				link();
+       			}
+
+        	}
+
+        		
+
+			//rainAudio.play();
+
+        	//Update camera position to stay in box.
+        	if (camera.position.x>13.5){
+        		camera.position.x = 13.5;
+        	}
+        	if (camera.position.x<-13.5){
+        		camera.position.x = -13.5;
+        	}
+        	if (camera.position.z>13.5){
+        		camera.position.z = 13.5;
+        	}
+        	if (camera.position.z<-13.5){
+        		camera.position.x = 13.5;
+        	}
+
+			//Update VR headset position and apply to camera.
+			controls.update();
+
+			// Render the scene through the VREffect.
+			effect.render( scene, camera );
+			requestAnimationFrame( animate );
+		}
+
+		animate();	// Kick off animation loop
+
+		/*
+		Listen for keyboard events
+		*/
+		function link(){
+			if(cursor.objectMouseOver == exitSign){
+				window.location= "http://hyperlinkspace.com/6_escape";
+			}
+		 }
+
+		/*
+		Listen for keyboard events
+		*/
+		function onkey(event) {
+	    event.preventDefault();
+
+	    if (event.keyCode == 90) { // z
+	    	controls.resetSensor(); //zero rotation
+	    } else if (event.keyCode == 70 || event.keyCode == 13) { //f or enter
+	    	effect.setFullScreen(true) //fullscreen
+		} else if (event.keyCode == 32) {//space
+	  		rainGame();
+	  	}
+	  }
+	  	
+
+	  	window.addEventListener("keydown", onkey, true);
+
+		/*
+		Handle window resizes
+		*/
+		function onWindowResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			effect.setSize( window.innerWidth, window.innerHeight );
+		}
+		window.addEventListener( 'resize', onWindowResize, false );
+	</script>
+</html>
