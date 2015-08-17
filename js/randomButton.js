@@ -1,8 +1,10 @@
 var pages = [
-	'http://hyperlinkspace.com/2_horse/',
-	'http://hyperlinkspace.com/3_apartment/',
-  	'http://hyperlinkspace.com/4_orbit/',
-    'http://hyperlinkspace.com/5_whitevideo/'];
+	'2_horse/index.html',
+	'3_apartment/index.html',
+  	'4_orbit/index.html',
+    '5_whitevideo/index.html',
+    '6_escape/index.html',
+    '7_water/index.html'];
 
 var newestPage = pages[pages.length-1];
 var getRandomPage = function getRandomInt(){
