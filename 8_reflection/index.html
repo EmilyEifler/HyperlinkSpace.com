@@ -89,15 +89,18 @@ It has been developed with the help of a great many people including (but not li
 
 		var WIDTH = window.innerWidth;
 		var HEIGHT = window.innerHeight;
-		var groundMirror = new THREE.Mirror( renderer, camera, { clipBias: 0.003, textureWidth: WIDTH, textureHeight: HEIGHT, color: 0x777777 } );
+
+		var planeGeo = new THREE.PlaneBufferGeometry( 100.1, 100.1 );
+				
+		// MIRROR planes
 		
-
-		var geometry = new THREE.DodecahedronGeometry(10);
-		var dodecahedron = new THREE.Mesh( geometry, groundMirror.material );
-
-		dodecahedron.position.z = -20;
-		scene.add(dodecahedron);
-
+		var verticalMirror = new THREE.Mirror( renderer, camera, { clipBias: 0.003, textureWidth: WIDTH, textureHeight: HEIGHT, color:0x889999 } );
+				
+		var verticalMirrorMesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 60, 60 ), verticalMirror.material );
+				verticalMirrorMesh.add( verticalMirror );
+				verticalMirrorMesh.position.y = 35;
+				verticalMirrorMesh.position.z = -45;
+				scene.add( verticalMirrorMesh );
 		
 		var floorImage = new THREE.ImageUtils.loadTexture( "art/floor.jpg" );
 		var floorGeometry = new THREE.PlaneBufferGeometry(5,5);
@@ -112,10 +115,8 @@ It has been developed with the help of a great many people including (but not li
 		*/
 		function animate() {
 			// Apply any desired changes for the next frame. In this case, we rotate our object.
-			dodecahedron.rotation.x += .01;
-			dodecahedron.rotation.y += .005;
-
-			groundMirror.renderWithMirror( verticalMirror );
+			// dodecahedron.rotation.x += .01;
+			// dodecahedron.rotation.y += .005;
 
 			//Update VR headset position and apply to camera.
 			controls.update();

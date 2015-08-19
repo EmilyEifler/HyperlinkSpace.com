@@ -4,8 +4,9 @@
  * @author hawksley / https://github.com/hawksley (added support for many more forms of control)
  */
 
-THREE.VRControls = function ( camera, done ) {
+THREE.VRControls = function ( camera, done, speed ) {
 	this.phoneVR = new PhoneVR();
+	this.speed = speed || 1;
 
 	//---game controller stuff---
 	this.haveEvents = 'ongamepadconnected' in window;
@@ -179,9 +180,9 @@ THREE.VRControls = function ( camera, done ) {
 		// if (this.isGamepad || this.isArrows) {
 			var offset = new THREE.Vector3();
 			if (this.manualMoveRate[0] != 0 || this.manualMoveRate[1] != 0 || this.manualMoveRate[2] != 0){
-					offset = getFwdVector().multiplyScalar( interval * this.manualMoveRate[0])
-							.add(getRightVector().multiplyScalar( interval * this.manualMoveRate[1]))
-							.add(getUpVector().multiplyScalar( interval * this.manualMoveRate[2]));
+					offset = getFwdVector().multiplyScalar( this.speed * interval * this.manualMoveRate[0])
+							.add(getRightVector().multiplyScalar( this.speed * interval * this.manualMoveRate[1]))
+							.add(getUpVector().multiplyScalar( this.speed * interval * this.manualMoveRate[2]));
 			}
 
 			camera.position = camera.position.add(offset);
@@ -195,16 +196,16 @@ THREE.VRControls = function ( camera, done ) {
 
 			// Applies head rotation from sensors data.
 			var totalRotation = new THREE.Quaternion();
-      var state = vrState.hmd.rotation;
-      if (vrState.hmd.rotation[0] !== 0 ||
-					vrState.hmd.rotation[1] !== 0 ||
-					vrState.hmd.rotation[2] !== 0 ||
-					vrState.hmd.rotation[3] !== 0) {
-					var vrStateRotation = new THREE.Quaternion(state[0], state[1], state[2], state[3]);
-	        totalRotation.multiplyQuaternions(manualRotation, vrStateRotation);
-      } else {
-        	totalRotation = manualRotation;
-      }
+	      var state = vrState.hmd.rotation;
+	      if (vrState.hmd.rotation[0] !== 0 ||
+						vrState.hmd.rotation[1] !== 0 ||
+						vrState.hmd.rotation[2] !== 0 ||
+						vrState.hmd.rotation[3] !== 0) {
+						var vrStateRotation = new THREE.Quaternion(state[0], state[1], state[2], state[3]);
+		        totalRotation.multiplyQuaternions(manualRotation, vrStateRotation);
+	      } else {
+	        	totalRotation = manualRotation;
+	      }
 
 			camera.quaternion.copy(totalRotation);
 		}

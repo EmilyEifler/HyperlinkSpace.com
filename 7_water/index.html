@@ -90,7 +90,7 @@ It has been developed with the help of a great many people including (but not li
 		scene.add(camera);
 
 		//Apply VR headset positional data to camera.
-		var controls = new THREE.VRControls( camera );
+		var controls = new THREE.VRControls( camera, undefined, 3 );
 		// controls.enableGamepad(false);
 		// controls.enableWASD(false);
 		// controls.enableArrows(false);
@@ -178,9 +178,10 @@ It has been developed with the help of a great many people including (but not li
 		var exitGeometry = new THREE.PlaneBufferGeometry(2,1);
 		var exitSign = new THREE.Mesh( exitGeometry, exitMaterial );
 
-		exitSign.position.x = -12;
-		exitSign.rotation.y = 90 * Math.PI/180;
-		exitSign.position.z = -.37;
+		exitSign.position.x = -11;
+		//exitSign.rotation.y = 90 * Math.PI/180;
+		exitSign.position.z = -14.5;
+		exitSign.position.y = -8;
 		scene.add(exitSign);
 
 		/*
